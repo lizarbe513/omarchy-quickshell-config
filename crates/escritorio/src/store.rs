@@ -8,6 +8,8 @@
 //! - `m:scale` es la escala general de `monitors.lua` (no se guarda en
 //!   `escritorio.lua`, así el atajo de escala de Omarchy sigue funcionando).
 //! - `x:mon:<pantalla>:<campo>` generan una regla `hl.monitor` completa.
+//! - `i:` es la inactividad: tiempos en `shell.json` de Omarchy, el portal
+//!   que deja a las apps evitar el reposo y "Mantener despierto".
 
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
@@ -86,6 +88,63 @@ pub struct Store {
     pub xcompose: Vec<xcompose::Entry>,
     xcompose_orig: Vec<xcompose::Entry>,
     xcompose_raw: Option<String>,
+    /// Inactividad en uso.
+    idle: Idle,
+}
+
+/// Inactividad: segundos hasta el salvapantallas y el bloqueo, si las apps
+/// pueden evitar el reposo (portal `Inhibit=none`) y "Mantener despierto".
+#[derive(Debug, Clone, PartialEq)]
+struct Idle {
+    screensaver: i64,
+    lock: i64,
+    apps: bool,
+    awake: bool,
+}
+
+impl Default for Idle {
+    fn default() -> Self {
+        Idle {
+            screensaver: 150,
+            lock: 300,
+            apps: false,
+            awake: false,
+        }
+    }
+}
+
+/// Línea del portal que desactiva el `Inhibit` de xdg-desktop-portal-gtk
+/// (en Hyprland acepta la petición pero no hace nada).
+const PORTAL_INHIBIT: &str = "org.freedesktop.impl.portal.Inhibit=none";
+
+fn portals_conf(apps: bool) -> String {
+    let mut s = String::from(
+        "# Generado por Lizarbe Escritorio (Pantallas → Inactividad).\n[preferred]\ndefault=hyprland;gtk\n",
+    );
+    if apps {
+        s.push_str("# Sin el Inhibit de GTK, las apps usan el de Wayland, que sí funciona.\n");
+        s.push_str(PORTAL_INHIBIT);
+        s.push('\n');
+    }
+    s
+}
+
+/// `shell.json` con la clave `idle` cambiada y el resto intacto.
+fn shell_with_idle(current: Option<&str>, screensaver: i64, lock: i64) -> String {
+    let mut v: Value = current
+        .and_then(|t| serde_json::from_str(t).ok())
+        .filter(Value::is_object)
+        .unwrap_or_else(|| json!({"version": 1}));
+    let obj = v.as_object_mut().unwrap();
+    let idle = obj.entry("idle").or_insert_with(|| json!({}));
+    if !idle.is_object() {
+        *idle = json!({});
+    }
+    idle["screensaver"] = json!(screensaver);
+    idle["lock"] = json!(lock);
+    let mut out = serde_json::to_string_pretty(&v).unwrap_or_else(|_| "{}".into());
+    out.push('\n');
+    out
 }
 
 fn read(path: &Path) -> Option<String> {
@@ -158,6 +217,7 @@ impl Store {
             xcompose: vec![],
             xcompose_orig: vec![],
             xcompose_raw: None,
+            idle: Idle::default(),
             paths,
         };
         s.reload();
@@ -204,6 +264,21 @@ impl Store {
             .map(xcompose::parse)
             .unwrap_or_default();
         self.xcompose = self.xcompose_orig.clone();
+        let shell: Option<Value> =
+            read(&self.paths.shell_json()).and_then(|t| serde_json::from_str(&t).ok());
+        let secs = |k: &str, d: i64| {
+            shell
+                .as_ref()
+                .and_then(|v| v.get("idle")?.get(k)?.as_i64())
+                .unwrap_or(d)
+        };
+        self.idle = Idle {
+            screensaver: secs("screensaver", 150),
+            lock: secs("lock", 300),
+            apps: read(&self.paths.portals_conf())
+                .is_some_and(|t| t.lines().any(|l| l.trim() == PORTAL_INHIBIT)),
+            awake: self.paths.stay_awake().exists(),
+        };
         self.live = hypr::available();
         self.binds.clear();
         self.effective.clear();
@@ -276,6 +351,10 @@ impl Store {
             "n:start" => return Some(json!(self.night.start)),
             "n:end" => return Some(json!(self.night.end)),
             "n:temp" => return Some(json!(self.night.temp)),
+            "i:screensaver" => return Some(json!(self.idle.screensaver)),
+            "i:lock" => return Some(json!(self.idle.lock)),
+            "i:apps" => return Some(json!(self.idle.apps)),
+            "i:awake" => return Some(json!(self.idle.awake)),
             _ => {}
         }
         if key == "m:scale" {
@@ -603,6 +682,17 @@ impl Store {
                 }
             }
         }
+        // Inactividad: tiempos en shell.json (el shell los relee solo) y portal.
+        let idle = self.idle_pending();
+        if idle.screensaver != self.idle.screensaver || idle.lock != self.idle.lock {
+            let file = self.paths.shell_json();
+            let text = shell_with_idle(read(&file).as_deref(), idle.screensaver, idle.lock);
+            tx.write(&file, &text)?;
+        }
+        if idle.apps != self.idle.apps {
+            tx.write(&self.paths.portals_conf(), &portals_conf(idle.apps))?;
+            report.warnings.push(t("idle.apps_restart"));
+        }
         if self.autostart != self.autostart_orig {
             let text =
                 autostart::render(self.autostart_raw.as_deref().unwrap_or(""), &self.autostart);
@@ -669,9 +759,35 @@ impl Store {
         if compose_changed && !self.paths.sandbox {
             let _ = ipc::run("omarchy-restart-xcompose", &[]);
         }
+        if idle.awake != self.idle.awake {
+            let file = self.paths.stay_awake();
+            if idle.awake {
+                if let Some(dir) = file.parent() {
+                    std::fs::create_dir_all(dir)?;
+                }
+                std::fs::write(&file, "")?;
+            } else {
+                let _ = std::fs::remove_file(&file);
+            }
+        }
+        if idle.apps != self.idle.apps && !self.paths.sandbox {
+            let _ = ipc::run("systemctl", &["--user", "restart", "xdg-desktop-portal"]);
+        }
         report.backups = tx.commit(30);
         self.reload();
         Ok(report)
+    }
+
+    /// Inactividad con los cambios pendientes.
+    fn idle_pending(&self) -> Idle {
+        let int = |k: &str, d: i64| self.values.get(k).and_then(Value::as_i64).unwrap_or(d);
+        let flag = |k: &str, d: bool| self.values.get(k).and_then(Value::as_bool).unwrap_or(d);
+        Idle {
+            screensaver: int("i:screensaver", self.idle.screensaver),
+            lock: int("i:lock", self.idle.lock),
+            apps: flag("i:apps", self.idle.apps),
+            awake: flag("i:awake", self.idle.awake),
+        }
     }
 
     /// Archivo que Escritorio escribe con ese nombre (las copias guardan solo
@@ -686,6 +802,8 @@ impl Store {
             "bindings.lua" => p.bindings_lua(),
             "hyprsunset.conf" => p.hyprsunset_conf(),
             ".XCompose" => p.xcompose(),
+            "shell.json" => p.shell_json(),
+            "hyprland-portals.conf" => p.portals_conf(),
             "env" => p.uwsm_env(),
             _ => return None,
         })
@@ -986,6 +1104,50 @@ mod tests {
         s.apply().unwrap();
         let lua = std::fs::read_to_string(s.paths.escritorio_lua()).unwrap_or_default();
         assert!(!lua.contains("lg"), "{lua}");
+    }
+
+    #[test]
+    fn idle_settings_go_to_shell_json_portal_and_stay_awake() {
+        let (d, mut s) = sandbox();
+        std::fs::write(
+            d.path().join("shell.json"),
+            "{\n  \"bar\": {\"position\": \"top\"},\n  \"idle\": {\"lock\": 300},\n  \"version\": 1\n}\n",
+        )
+        .unwrap();
+        s.reload();
+        let def = catalog::find("i:screensaver", &Ctx::default()).unwrap();
+        assert_eq!(s.base(&def), Some(json!(150)), "sin valor, el de fábrica");
+        s.set_field(&Bind("i:screensaver".into()), json!(60), Some(&json!(150)));
+        s.set_field(&Bind("i:apps".into()), json!(true), Some(&json!(false)));
+        s.set_field(&Bind("i:awake".into()), json!(true), Some(&json!(false)));
+        let report = s.apply().unwrap();
+        assert!(report.errors.is_empty());
+
+        let shell = std::fs::read_to_string(d.path().join("shell.json")).unwrap();
+        let v: Value = serde_json::from_str(&shell).unwrap();
+        assert_eq!(v["idle"], json!({"lock": 300, "screensaver": 60}));
+        assert_eq!(v["bar"]["position"], "top", "el resto queda intacto");
+        let keys: Vec<&String> = v.as_object().unwrap().keys().collect();
+        assert_eq!(keys, ["bar", "idle", "version"], "y en el mismo orden");
+
+        let conf = std::fs::read_to_string(d.path().join("hyprland-portals.conf")).unwrap();
+        assert!(conf.contains(PORTAL_INHIBIT));
+        assert!(d.path().join("stay-awake").exists());
+        let lua = std::fs::read_to_string(s.paths.escritorio_lua()).unwrap_or_default();
+        assert!(!lua.contains("i:"), "no va a escritorio.lua");
+
+        // Recargado, los valores en uso son los nuevos y no queda nada pendiente.
+        assert!(!s.dirty());
+        assert_eq!(s.base(&def), Some(json!(60)));
+        let apps = catalog::find("i:apps", &Ctx::default()).unwrap();
+        assert_eq!(s.base(&apps), Some(json!(true)));
+
+        s.set_field(&Bind("i:apps".into()), json!(false), Some(&json!(true)));
+        s.set_field(&Bind("i:awake".into()), json!(false), Some(&json!(true)));
+        s.apply().unwrap();
+        let conf = std::fs::read_to_string(d.path().join("hyprland-portals.conf")).unwrap();
+        assert!(!conf.contains(PORTAL_INHIBIT));
+        assert!(!d.path().join("stay-awake").exists());
     }
 
     #[test]

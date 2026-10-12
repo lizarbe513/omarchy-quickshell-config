@@ -84,6 +84,40 @@ impl Paths {
         }
     }
 
+    /// Ajustes del shell de Omarchy (inactividad); en pruebas, dentro de la
+    /// carpeta de pruebas.
+    pub fn shell_json(&self) -> PathBuf {
+        self.user_config("omarchy/shell.json")
+    }
+
+    /// Preferencias de portales en Hyprland: con `Inhibit=none` las apps usan
+    /// el inhibidor de Wayland, que respeta el shell.
+    pub fn portals_conf(&self) -> PathBuf {
+        self.user_config("xdg-desktop-portal/hyprland-portals.conf")
+    }
+
+    /// Marca de "Mantener despierto" de Omarchy.
+    pub fn stay_awake(&self) -> PathBuf {
+        if self.sandbox {
+            self.hypr_dir.join("stay-awake")
+        } else {
+            dirs::home_dir()
+                .unwrap_or_default()
+                .join(".local/state/omarchy/indicators/stay-awake")
+        }
+    }
+
+    fn user_config(&self, rel: &str) -> PathBuf {
+        if self.sandbox {
+            self.hypr_dir.join(rel.rsplit('/').next().unwrap_or(rel))
+        } else {
+            dirs::home_dir()
+                .unwrap_or_default()
+                .join(".config")
+                .join(rel)
+        }
+    }
+
     pub fn theme_colors(&self) -> PathBuf {
         self.theme_dir.join("colors.toml")
     }

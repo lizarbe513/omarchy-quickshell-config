@@ -486,6 +486,7 @@ pub fn is_own(key: &str) -> bool {
         || key.starts_with("m:")
         || key.starts_with("n:")
         || key.starts_with("lg:")
+        || key.starts_with("i:")
         || key.starts_with("kbopt:")
 }
 
@@ -674,6 +675,7 @@ fn monitors(ctx: &Ctx) -> Vec<Group> {
             toggle("xwayland:force_zero_scaling", false).advanced(),
         ],
     )];
+    groups.push(Group::new("idle", idle()));
     for m in &ctx.monitors {
         let fields = ["mode", "scale", "position", "transform"]
             .iter()
@@ -692,6 +694,25 @@ fn monitors(ctx: &Ctx) -> Vec<Group> {
         });
     }
     groups
+}
+
+/// Inactividad del shell de Omarchy (`shell.json`), en segundos.
+fn idle() -> Vec<FieldDef> {
+    let secs = |v: &[i64]| v.iter().map(|n| json!(n)).collect::<Vec<_>>();
+    vec![
+        choice(
+            "i:screensaver",
+            &secs(&[60, 120, 150, 300, 600, 900, 1800]),
+            json!(150),
+        ),
+        choice(
+            "i:lock",
+            &secs(&[120, 300, 600, 900, 1800, 3600]),
+            json!(300),
+        ),
+        toggle("i:apps", true),
+        toggle("i:awake", false),
+    ]
 }
 
 // ---------------------------------------------------------------- dispositivos
