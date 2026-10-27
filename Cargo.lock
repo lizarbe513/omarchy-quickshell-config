@@ -1097,7 +1097,7 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
 name = "lizarbe-bienvenida"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "lizarbe-core",
@@ -1108,7 +1108,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-core"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1124,7 +1124,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-desbloqueo"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "dirs",
@@ -1141,7 +1141,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-escritorio"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "dirs",
@@ -1153,7 +1153,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-recibir"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1165,7 +1165,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-tienda"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "lizarbe-core",
@@ -1177,7 +1177,7 @@ dependencies = [
 
 [[package]]
 name = "lizarbe-widgets"
-version = "1.4.1"
+version = "1.5.0"
 dependencies = [
  "anyhow",
  "chrono",
