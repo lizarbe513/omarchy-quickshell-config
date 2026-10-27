@@ -1,6 +1,6 @@
 [package]
-name = "lizarbe-temas"
-description = "Estudio de temas de Omarchy: crea y edita temas completos (colores, fondos, iconos…) con vista previa en vivo"
+name = "lizarbe-desbloqueo"
+description = "Crea pantallas de desbloqueo (arranque) de Omarchy con tu propio dibujo, elegibles en Estilo → Desbloqueo"
 version.workspace = true
 license.workspace = true
 edition.workspace = true
@@ -10,9 +10,11 @@ repository.workspace = true
 lizarbe-core.workspace = true
 anyhow.workspace = true
 dirs.workspace = true
-unicode-width.workspace = true
 ratatui.workspace = true
+serde.workspace = true
 serde_json.workspace = true
+toml.workspace = true
+unicode-width.workspace = true
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "webp"] }
 ratatui-image = { version = "12.0.0-rc.2", default-features = false, features = ["crossterm", "image-defaults"] }
 

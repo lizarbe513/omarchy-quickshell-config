@@ -1,4 +1,4 @@
-# Lizarbe Ajustes — Escritorio, Widgets, Estudio de temas, Tienda y Bienvenida
+# Lizarbe Ajustes — Escritorio, Widgets, Desbloqueo, Tienda y Bienvenida
 
 > Configuración de [Omarchy](https://omarchy.org) por interfaz TUI, sin editar archivos de texto.
 > Este repositorio es un *workspace* de Rust con cinco aplicaciones y un núcleo compartido. Los
@@ -9,7 +9,7 @@
 | :--- | :--- | :--- |
 | **Escritorio** | `lizarbe-escritorio` | Configuración › Pantallas, Atajos de teclado, Teclado, Luz nocturna, Capturas, Atajos de texto, Idioma, Inicio automático · Apariencia › Hyprland |
 | **Widgets** | `lizarbe-widgets` | Apariencia › Widgets y barra · Configuración › Plugins, Notificaciones |
-| **Estudio de temas** | `lizarbe-temas` | Apariencia › Crear tema |
+| **Desbloqueo** | `lizarbe-desbloqueo` | Estilo › Crear tema de desbloqueo (las pantallas creadas se eligen en Estilo › Desbloqueo) |
 | **Tienda** | `lizarbe-tienda` | Instalar › Paquete y Instalar › AUR (misma pantalla; cambia solo la fuente) |
 | **Bienvenida** | `lizarbe-bienvenida` | Aprender › Bienvenida (y sola, una vez, en el primer inicio de un usuario nuevo) |
 | **Recibir** | `lizarbe-recibir` | Compartir › Recibir (archivos del teléfono con KDE Connect) |
@@ -136,28 +136,27 @@ lizarbe-tienda --app obs                # abrir seleccionando una app
 lizarbe-tienda --buscar "editar video"  # abrir con una búsqueda
 ```
 
-## Estudio de temas
+## Desbloqueo
 
-Crea y edita **temas completos** de Omarchy con una maqueta en vivo del escritorio:
+**Crear tema de desbloqueo** crea pantallas de desbloqueo (la que pide la contraseña del disco al
+encender) con un dibujo propio, con el mismo formato que dibuja Omarchy: fondo liso, el dibujo
+centrado y la caja de contraseña debajo.
 
-| Pestaña | Qué edita |
+| Campo | Qué cambia |
 | :--- | :--- |
-| **1 Tema** | Nombre, modo claro u oscuro y tema base. |
-| **2 Paleta** | Acento y selección; paleta generada desde el acento (`G`) o desde un fondo (`F`). |
-| **3 Interfaz** | Fondos, textos y bordes de ventana (color o degradado con ángulo). |
-| **4 Terminal** | Los 16 colores ANSI. |
-| **5 Fondos** | Fondos de pantalla con miniatura. Quitar, ordenar y añadir con `D`, `[ ]`, `N`, el menú `M` o clic derecho; los del tema base se marcan y se pueden quitar de golpe. |
-| **6 Iconos y apps** | Tema de iconos, Neovim, VS Code y teclado RGB. |
-| **7 Barra y menús** | Colores propios de la barra, los menús, el lanzador y el bloqueo. |
-| **8 Guardar** | Guardar, activar y **probar en el escritorio**. |
+| **Nombre** | Nombre visible; la carpeta es `desbloqueo-<nombre>`. |
+| **Dibujo** | Imagen PNG, JPG o WebP (explorador con miniatura; `/` o `~` para escribir una ruta). |
+| **Tamaño** | Alto del dibujo en % de la pantalla (15–70 %), sin tapar la caja de contraseña. |
+| **Fondo** | Automático (el color del borde del dibujo), uno del dibujo o un código `#rrggbb`. |
+| **Texto** | Automático (contraste AA con el fondo) o el que elijas. |
 
-**Probar** (`P`) aplica el tema de verdad con `omarchy-theme-set`; si no lo confirmas en 20 s vuelve
-solo al anterior. Mientras tanto se captura `preview.png` con `grim`. Los temas se guardan solo en
-`~/.config/omarchy/themes/<nombre>`; nunca se toca `/usr/share/omarchy`.
+Cada pantalla se guarda en `~/.config/omarchy/themes/desbloqueo-<nombre>/` con `unlock.png`,
+`preview-unlock.png` y `colors.toml`, así Omarchy la ofrece en **Estilo › Desbloqueo**. `A` la pone en
+el arranque desde la propia app (`omarchy-plymouth-set-by-theme`, que pide sudo). Esas carpetas no
+salen en el selector de temas del escritorio porque no tienen `preview.png` ni fondos.
 
 ```bash
-lizarbe-temas --new tokyo-night         # empezar un tema a partir de otro
-lizarbe-temas --theme mi-tema           # editar un tema propio
+lizarbe-desbloqueo --editar desbloqueo-totoro   # abrir una pantalla para editarla
 ```
 
 ## Uso común
@@ -171,9 +170,9 @@ Las tres aplicaciones se manejan igual, con teclado o ratón:
 | `Enter` / `Espacio` | Editar, elegir o activar |
 | `r` | Volver al valor por defecto |
 | `/` · `Ctrl+F` | **Buscar una opción** en todas las secciones y saltar a ella |
-| `o` (Escritorio, Widgets) · `m` (Estudio) | Menú contextual (también con clic derecho) |
+| `o` (Escritorio, Widgets) | Menú contextual (también con clic derecho) |
 | `a` / `c` / `R` | Aplicar / cancelar / restaurar (Escritorio y Widgets) |
-| `s` / `p` / `z` | Guardar / probar / deshacer (Estudio) |
+| `s` / `a` / `n` / `d` / `x` | Guardar / poner en el arranque / nueva / duplicar / borrar (Desbloqueo) |
 | `m` / `i` | Modo simple ⇄ avanzado / español ⇄ inglés (Escritorio y Widgets) |
 | `?` · `Esc` · `q` / `Ctrl+W` | Ayuda · volver · cerrar |
 
@@ -197,7 +196,7 @@ cambias con la app abierta.
 | `~/.config/omarchy/shell.json`, `shell.toml` | Widgets | Barra, widgets, plugins, inactividad y apariencia. |
 | `~/.local/state/omarchy/notifications.json` | Widgets | Solo la clave `dnd` (No molestar); el resto se conserva. |
 | `~/.local/share/dbus-1/services/org.freedesktop.Notifications.service` | Widgets | Bloqueo de swaync (y `systemctl --user mask swaync.service`). Se quita al volver a permitirlo. |
-| `~/.config/omarchy/themes/<tema>/` | Estudio | Temas propios. |
+| `~/.config/omarchy/themes/desbloqueo-<nombre>/` | Desbloqueo | Pantallas de desbloqueo propias. |
 | `~/.config/lizarbe/ajustes.toml` | Todas | Preferencias compartidas (idioma, modo). |
 | `~/.local/state/lizarbe/backups/` | Todas | Copias de seguridad antes de cada cambio. |
 
@@ -221,12 +220,16 @@ Los paquetes se construyen y publican desde
 
 - `crates/core/` — núcleo compartido:
   - `i18n`, `prefs`, `cli` (argumentos comunes), `paths` (rutas de Omarchy);
-  - `theme` (paleta y recarga en vivo), `color`, `themes` (modelo de temas de Omarchy);
+  - `theme` (paleta y recarga en vivo), `color`;
   - `fsutil` (escritura atómica, copias, transacciones), `ipc`, `hypr` (Hyprland vía `hyprctl`);
   - interfaz: `term` (bucle), `ui`, `view`, `form`, `field`, `popup`, `modal`, `mouse`, `hints`, `search`.
 - `crates/escritorio/` — catálogo de opciones, `escritorio.lua`, atajos, capturas, inicio, luz nocturna…
 - `crates/widgets/` — `shell.json`/`shell.toml`, plugins y la vista de la barra.
-- `crates/temas/` — borrador del tema, maqueta, paletas (acento y k-means), imágenes y pruebas en vivo.
+- `crates/desbloqueo/` — pantallas de desbloqueo:
+  - `pantalla` (carpeta, guardar, leer, borrar), `composicion` (cómo la pinta Plymouth),
+    `paleta` (colores automáticos con k-means), `vista` (vista previa en un hilo);
+  - `archivos` (explorador), `imagenes` (miniaturas), `app` (estado y acciones), `entrada`
+    (teclado y ratón), `ui` y `dialogos` (dibujo).
 - `crates/tienda/` — catálogo curado (`catalogo.toml`), consultas a pacman y la interfaz de la tienda.
 - `crates/bienvenida/` — capítulos, práctica en vivo (`retos`), QR, terminal de prueba, animaciones y marca.
 - `crates/recibir/` — la ventana de Recibir: el celular, el estado de KDE Connect y los archivos que llegan.
@@ -250,9 +253,9 @@ Four TUI apps (three to configure [Omarchy](https://omarchy.org) without editing
   **screenshots** (folder, capture key, mode, save/copy, editor). Saves only what you change in
   `~/.config/hypr/escritorio.lua`, with backups and automatic rollback if Hyprland reports an error.
 - **Widgets** (`lizarbe-widgets`): the Quickshell bar, widgets, plugins, idle, notifications (Do not disturb; keep swaync from mixing styles) and appearance.
-- **Theme studio** (`lizarbe-temas`): create and edit complete Omarchy themes with a live mock-up,
-  palettes generated from an accent or a wallpaper, wallpapers, icons, editors and bar colors, and
-  a **try on the desktop** mode that reverts after 20 s unless confirmed.
+- **Unlock screens** (`lizarbe-desbloqueo`): create boot unlock screens with your own drawing (size,
+  automatic or custom colors, live preview). They are saved as `desbloqueo-<name>` folders in your
+  themes, so Omarchy offers them in Style › Unlock, and can be set at boot from the app.
 - **Welcome** (`lizarbe-bienvenida`): a first-run tour with the Lizarbe identity. It practices the shortcuts
   live (Hyprland reports what you really did), shows a QR to install KDE Connect and lists nearby phones,
   offers a safe toy terminal, switches themes and opens the settings tools. It appears once on a new

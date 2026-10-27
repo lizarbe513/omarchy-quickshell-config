@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Crear tema de desbloqueo
+Name[en]=New Unlock Screen
+GenericName=Pantallas de desbloqueo
+GenericName[en]=Unlock screens
+Comment=Crea pantallas de desbloqueo del arranque con tu propio dibujo
+Comment[en]=Create boot unlock screens with your own drawing
+Exec=omarchy-launch-tui --app-id=org.omarchy.lizarbe-desbloqueo lizarbe-desbloqueo
+Icon=system-lock-screen
+Terminal=false
+Type=Application
+Categories=Settings;DesktopSettings;
+Keywords=desbloqueo;unlock;arranque;boot;plymouth;inicio;login;contraseña;password;dibujo;lizarbe;tui;

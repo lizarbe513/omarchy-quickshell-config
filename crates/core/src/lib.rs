@@ -24,6 +24,5 @@ pub mod schema;
 pub mod search;
 pub mod term;
 pub mod theme;
-pub mod themes;
 pub mod ui;
 pub mod view;

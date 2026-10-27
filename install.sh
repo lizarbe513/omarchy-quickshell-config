@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Instalador de Lizarbe Ajustes para Omarchy: Escritorio, Widgets, Estudio de temas, Tienda, Bienvenida y Recibir
+# Instalador de Lizarbe Ajustes para Omarchy: Escritorio, Widgets, Desbloqueo, Tienda, Bienvenida y Recibir
 #
 #  - Compila los binarios (cargo build --release) y los copia a ~/.local/bin
 #  - Registra "Escritorio", "Widgets", "Crear tema", la Tienda y la Bienvenida en el lanzador
@@ -20,13 +20,13 @@ if ! command -v cargo &>/dev/null; then
   echo "Necesitas Rust (cargo). Instálalo con: omarchy pkg add rust" >&2
   exit 1
 fi
-cargo build --release --manifest-path "$SCRIPT_DIR/Cargo.toml" -p lizarbe-widgets -p lizarbe-escritorio -p lizarbe-temas -p lizarbe-tienda -p lizarbe-bienvenida -p lizarbe-recibir
+cargo build --release --manifest-path "$SCRIPT_DIR/Cargo.toml" -p lizarbe-widgets -p lizarbe-escritorio -p lizarbe-desbloqueo -p lizarbe-tienda -p lizarbe-bienvenida -p lizarbe-recibir
 ok "Hecho"
 
-step "[2/3] Instalando Escritorio, Widgets, Estudio de temas, Tienda, Bienvenida y Recibir…"
+step "[2/3] Instalando Escritorio, Widgets, Desbloqueo, Tienda, Bienvenida y Recibir…"
 install_app lizarbe-escritorio escritorio
 install_app lizarbe-widgets widgets
-install_app lizarbe-temas temas
+install_app lizarbe-desbloqueo desbloqueo
 install_app lizarbe-tienda tienda
 install_app lizarbe-bienvenida bienvenida
 install_app lizarbe-recibir recibir
@@ -39,4 +39,4 @@ ok "Hecho"
 
 echo
 echo -e "\033[32m✔ Lizarbe Ajustes instalado.\033[0m"
-echo "  Menú → Configuración y Apariencia, o: lizarbe-escritorio / lizarbe-widgets / lizarbe-temas / lizarbe-tienda"
+echo "  Menú → Configuración y Apariencia, o: lizarbe-escritorio / lizarbe-widgets / lizarbe-desbloqueo / lizarbe-tienda"

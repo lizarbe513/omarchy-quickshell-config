@@ -4,7 +4,7 @@
   - `crates/core`: nucleo compartido (idioma, preferencias, argumentos, rutas, tema, escritura segura, Hyprland, dibujo, raton, busqueda).
   - `crates/escritorio`: configuracion de Hyprland (`lizarbe-escritorio`), reemplazo de Meca.
   - `crates/widgets`: panel de configuracion de la barra, widgets y plugins Quickshell (`lizarbe-widgets`).
-  - `crates/temas`: Estudio de temas, crea y edita temas completos de Omarchy (`lizarbe-temas`).
+  - `crates/desbloqueo`: crea pantallas de desbloqueo del arranque con un dibujo propio (`lizarbe-desbloqueo`).
   - `crates/tienda`: Tienda de aplicaciones (`lizarbe-tienda`).
   - `crates/bienvenida`: Bienvenida de primer inicio con practica en vivo (`lizarbe-bienvenida`).
   - `crates/recibir`: ventana para recibir archivos del telefono con KDE Connect (`lizarbe-recibir`).

@@ -1123,6 +1123,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "lizarbe-desbloqueo"
+version = "1.4.1"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "image",
+ "lizarbe-core",
+ "ratatui",
+ "ratatui-image",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
+ "unicode-width",
+]
+
+[[package]]
 name = "lizarbe-escritorio"
 version = "1.4.1"
 dependencies = [
@@ -1142,21 +1159,6 @@ dependencies = [
  "chrono",
  "lizarbe-core",
  "ratatui",
- "tempfile",
- "unicode-width",
-]
-
-[[package]]
-name = "lizarbe-temas"
-version = "1.4.1"
-dependencies = [
- "anyhow",
- "dirs",
- "image",
- "lizarbe-core",
- "ratatui",
- "ratatui-image",
- "serde_json",
  "tempfile",
  "unicode-width",
 ]
